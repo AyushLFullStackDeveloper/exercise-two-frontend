@@ -1,0 +1,25 @@
+{
+  "short_name": "SchoolCoreOS",
+  "name": "SchoolCoreOS - Modern Multi-Institute Management Platform",
+  "icons": [
+    {
+      "src": "favicon_black.png",
+      "sizes": "84x70",
+      "type": "image/png"
+    },
+    {
+      "src": "logo_black.png",
+      "type": "image/png",
+      "sizes": "84x70"
+    },
+    {
+      "src": "logo_white.png",
+      "type": "image/png",
+      "sizes": "84x70"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
