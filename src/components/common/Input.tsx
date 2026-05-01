@@ -1,13 +1,32 @@
+/**
+ * @file Input.tsx
+ * @description A reusable text input component with support for icons and error states.
+ */
+
 import React, { CSSProperties } from 'react';
 import { COLORS } from '../../theme/colors';
 
+/**
+ * Props for the Input component, extending standard HTML input attributes.
+ */
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    /** Optional React node (SVG/Icon) rendered inside the input (right-aligned) */
     icon?: React.ReactNode;
+    /** Callback triggered when the icon is clicked */
     onIconClick?: () => void;
+    /** Validation error message to display below the input */
     error?: string;
+    /** Override styles for the outer container */
     containerStyle?: CSSProperties;
 }
 
+/**
+ * Standardized Input component.
+ * Supports rendering a trailing icon (e.g., password visibility toggle) and inline error text.
+ * 
+ * @param {InputProps} props - Component properties
+ * @returns {JSX.Element} The styled input element
+ */
 const Input: React.FC<InputProps> = ({ icon, onIconClick, error, containerStyle, style, ...props }) => {
     const defaultStyle: CSSProperties = {
         width: '100%',

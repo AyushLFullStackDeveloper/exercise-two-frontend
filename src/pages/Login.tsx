@@ -1,6 +1,8 @@
 /**
  * @file Login.tsx
  * @description The primary authentication entry point for MentrixOS.
+ * Provides a highly responsive, animated login interface that handles email validation,
+ * credential submission, and dynamic routing based on multi-tenant architecture (institutes and roles).
  */
 
 import React, { useState, KeyboardEvent, CSSProperties } from "react";
@@ -17,6 +19,10 @@ import Input from "../components/common/Input";
 import { COLORS } from "../theme/colors";
 import { APP_STRINGS } from "../constants/strings";
 
+/**
+ * AlertIcon Component
+ * @returns {JSX.Element} SVG representation of an alert/help icon used in the utility bar
+ */
 const AlertIcon = () => (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--utility-btn-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
@@ -25,6 +31,17 @@ const AlertIcon = () => (
     </svg>
 );
 
+/**
+ * Login Screen Component
+ * 
+ * Manages the entire sign-in flow including:
+ * 1. Pre-context authentication (verifying credentials)
+ * 2. Fetching accessible institutes and roles
+ * 3. Auto-redirecting to dashboard if only 1 institute and 1 role exist
+ * 4. Redirecting to Selection screens if multiple options exist
+ * 
+ * @returns {JSX.Element} The rendered Login view
+ */
 const Login: React.FC = () => {
     const navigate = useNavigate();
 
@@ -37,6 +54,10 @@ const Login: React.FC = () => {
     const [loadingProgress, setLoadingProgress] = useState<number>(0);
     const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
+    /**
+     * Starts the simulated loading progress bar.
+     * Increments the progress state by 15% every 150ms until it reaches 99%.
+     */
     const startProgress = () => {
         setLoadingProgress(0);
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -48,6 +69,10 @@ const Login: React.FC = () => {
         }, 150);
     };
 
+    /**
+     * Halts the loading progress bar.
+     * @param {boolean} success - If true, fills bar to 100%. If false, resets to 0%.
+     */
     const stopProgress = (success: boolean) => {
         if (intervalRef.current) clearInterval(intervalRef.current);
         if (success) {
@@ -57,6 +82,11 @@ const Login: React.FC = () => {
         }
     };
 
+    /**
+     * Primary handler for user login execution.
+     * Validates input, interacts with the authService to mint tokens, 
+     * and performs context-aware routing based on the user's role assignments.
+     */
     const handleLogin = async (): Promise<void> => {
         if (!email || !password) {
             setError(APP_STRINGS.LOGIN.ERR_EMPTY_FIELDS);
@@ -88,6 +118,7 @@ const Login: React.FC = () => {
                 return;
             } 
 
+            // Auto-Routing Logic: If user has only 1 institute, auto-select it.
             if (institutes.length === 1) {
                 const inst = institutes[0];
                 localStorage.setItem("selectedInstitute", JSON.stringify({
@@ -96,6 +127,7 @@ const Login: React.FC = () => {
                     name: inst.institute_name
                 }));
 
+                // If the user only has 1 role within that single institute, bypass selections entirely
                 if (inst.roles.length === 1) {
                     const role = inst.roles[0];
                     const selData = await authService.selectContext({
@@ -104,6 +136,7 @@ const Login: React.FC = () => {
                         role_id: role.role_id
                     });
 
+                    // Ensure access_token extraction is resilient to backend structure differences
                     const accessToken = selData.data?.access_token || selData.access_token;
                     localStorage.setItem("token", accessToken);
                     localStorage.setItem("selectedRole", JSON.stringify({
@@ -128,6 +161,9 @@ const Login: React.FC = () => {
         }
     };
 
+    /**
+     * Trigger login sequence when the 'Enter' key is pressed while focused on an input field.
+     */
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") handleLogin();
     };

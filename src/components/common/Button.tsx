@@ -1,13 +1,32 @@
+/**
+ * @file Button.tsx
+ * @description A reusable, highly customizable button component supporting loading states.
+ */
+
 import React, { CSSProperties } from 'react';
 import { COLORS } from '../../theme/colors';
 
+/**
+ * Props for the Button component, extending standard HTML button attributes.
+ */
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    /** Toggles the internal progress-bar loading state */
     isLoading?: boolean;
+    /** Text displayed while loading */
     loadingText?: string;
+    /** Current progress percentage (0-100) */
     loadingProgress?: number;
+    /** Visual style variant */
     variant?: 'primary' | 'secondary';
 }
 
+/**
+ * A standardized Button component used throughout the application.
+ * Features an integrated progress bar for async operations (like login).
+ * 
+ * @param {ButtonProps} props - Component properties
+ * @returns {JSX.Element} The styled button element
+ */
 const Button: React.FC<ButtonProps> = ({
     children,
     isLoading,

@@ -1,6 +1,7 @@
 /**
  * @file Dashboard.tsx
  * @description The main landing interface after successful authentication and context selection.
+ * Dynamically renders statistics and layouts based on the active role (e.g., Admin, Student).
  */
 
 import React, { CSSProperties } from "react";
@@ -14,7 +15,14 @@ const AvatarSVG = () => (<svg width="36" height="36" viewBox="0 0 36 36" fill="n
 const LogoutIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>);
 const MenuIcon = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>);
 
+/**
+ * Defines the structure for a single Dashboard statistic card.
+ */
 interface Stat { id: number; value: string; label: string; desc: string; bg: string; color: string; textBg: string; }
+
+/**
+ * Defines the complete panel configuration for a specific role.
+ */
 interface RolePanel { title: string; stats: Stat[]; }
 
 const rolePanels: Record<string, RolePanel> = {
@@ -80,7 +88,16 @@ rolePanels["Institute Admin"] = rolePanels.Admin;
 rolePanels.Trainer = rolePanels.Teacher;
 rolePanels.Staff = rolePanels.Admin;
 
-function Dashboard() {
+/**
+ * Dashboard Component
+ * 
+ * The primary authenticated view. Utilizes the selected institute and role 
+ * from localStorage to fetch dynamic dashboard stats from the API. Falls back 
+ * to hardcoded layouts if the API lacks specific implementations.
+ * 
+ * @returns {JSX.Element} The rendered Dashboard interface
+ */
+const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const [stats, setStats] = React.useState<any>(null);
     const [isLoading, setIsLoading] = React.useState<boolean>(true);
@@ -107,6 +124,7 @@ function Dashboard() {
             return;
         }
 
+        // Fetch dynamic stats based on context, or use fallback if not provided
         apiClient.get(`/dashboard/stats?institute_id=${selectedInstitute.id}&role_id=${selectedRole.id}`)
             .then((res) => {
                 setStats(res.data.data || res.data);
@@ -118,7 +136,10 @@ function Dashboard() {
             });
     }, [token, user, selectedInstitute, selectedRole, navigate]);
 
-    const logout = (): void => {
+    /**
+     * Clears local session state and redirects to the login screen.
+     */
+    const handleLogout = () => {
         localStorage.clear();
         navigate("/");
     };
@@ -170,7 +191,7 @@ function Dashboard() {
                         <div style={styles.profile} title="Profile">
                             <AvatarSVG />
                         </div>
-                        <button style={styles.headerLogoutBtn} onClick={logout}>
+                        <button style={styles.headerLogoutBtn} onClick={handleLogout}>
                             <LogoutIcon />
                             <span className="hide-on-mobile">Logout</span>
                         </button>

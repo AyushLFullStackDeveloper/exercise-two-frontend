@@ -1,6 +1,7 @@
 /**
  * @file SelectRole.tsx
  * @description The Role Selection screen for multi-tenant users.
+ * Allows users to select their functional context (e.g., Admin, Student) within a previously selected institute.
  */
 
 import React, { useState, CSSProperties } from "react";
@@ -23,6 +24,11 @@ const LocationIcon = () => (<svg width="12" height="12" viewBox="0 0 24 24" fill
 const CheckBadgeIcon = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb" /><polyline points="8 12.5 11 15.5 16 9.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>);
 const InstituteLogoSVG = () => (<svg width="40" height="40" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#e2e8f0" stroke="#0f172a" strokeWidth="2" /><path d="M50 20L80 80H20L50 20Z" fill="#0f172a" /><circle cx="50" cy="65" r="10" fill="#fcd34d" /></svg>);
 
+/**
+ * Maps a given role string to its corresponding visual asset.
+ * @param {string} roleName - The backend-provided role name
+ * @returns {string | null} Path to the icon image, or null if no specific match
+ */
 const getRoleIcon = (roleName: string) => {
     if (!roleName) return null;
     const lower = roleName.toLowerCase();
@@ -32,6 +38,14 @@ const getRoleIcon = (roleName: string) => {
     return null;
 };
 
+/**
+ * SelectRole Component
+ * 
+ * Invoked after Institute Selection (or bypassed if only 1 role exists).
+ * Presents the user with available roles within the selected institute.
+ * 
+ * @returns {JSX.Element} The Role Selection view
+ */
 const SelectRole: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -56,6 +70,13 @@ const SelectRole: React.FC = () => {
     const storedInstituteData = localStorage.getItem("selectedInstitute");
     const selectedInstitute: any = storedInstituteData ? JSON.parse(storedInstituteData) : null;
 
+    /**
+     * Executes the final authentication step: minting an access_token.
+     * Submits the pre_context_token, institute_id, and selected role_id to the backend.
+     * 
+     * @param {any} role - The chosen role object
+     * @param {React.MouseEvent} [e] - Optional click event to stop propagation
+     */
     const handleRoleClick = React.useCallback(async (role: any, e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
         if (!canInteract) return;

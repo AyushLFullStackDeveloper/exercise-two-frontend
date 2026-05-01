@@ -1,10 +1,20 @@
+/**
+ * @file api.ts
+ * @description Centralized Axios instance with global request/response interceptors.
+ * Provides a reliable foundation for all outbound HTTP requests in MentrixOS.
+ */
 import axios from 'axios';
 
 import { API_URL } from '../utils/api';
 
-// Default API URL fallback if not set in environment
+/**
+ * The base URL for all API requests. Falls back to a predefined constant if no ENV var is present.
+ */
 export const API_BASE_URL = process.env.REACT_APP_API_URL || API_URL;
 
+/**
+ * Pre-configured Axios instance.
+ */
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
     headers: {
@@ -12,7 +22,11 @@ const apiClient = axios.create({
     },
 });
 
-// Request Interceptor to add auth token
+/**
+ * Request Interceptor
+ * Automatically injects the stored JWT (either pre_context_token or access_token)
+ * into the Authorization header of every outbound request.
+ */
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -26,7 +40,11 @@ apiClient.interceptors.request.use(
     }
 );
 
-// Response Interceptor for global error handling
+/**
+ * Response Interceptor
+ * Catches global API errors. Specifically traps 401 Unauthorized errors to 
+ * potentially flush the session and force a re-authentication flow.
+ */
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {

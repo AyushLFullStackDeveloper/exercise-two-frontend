@@ -1,6 +1,7 @@
 /**
  * @file SelectInstitute.tsx
  * @description The Institute Selection screen for multi-tenant users.
+ * Displays a searchable list of institutes that the authenticated user belongs to.
  */
 
 import React, { useState, CSSProperties } from "react";
@@ -26,6 +27,14 @@ const SearchIcon: React.FC<IconProps> = ({ size, color }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 );
 
+/**
+ * SelectInstitute Component
+ * 
+ * Invoked immediately after a successful login if the user belongs to multiple institutes.
+ * Fetches the user's institute assignments and presents a filtered list.
+ * 
+ * @returns {JSX.Element} The Institute Selection view
+ */
 const SelectInstitute: React.FC = () => {
     const navigate = useNavigate();
 
@@ -48,8 +57,10 @@ const SelectInstitute: React.FC = () => {
             return;
         }
 
+        // Fetch institutes bound to the user's pre_context_token
         authService.getInstitutesAndRoles()
             .then((res) => {
+                // Map the backend structure to the component's expected schema
                 const mappedData = res.data.map((inst: any) => ({
                     ...inst,
                     id: inst.institute_id,
@@ -74,7 +85,14 @@ const SelectInstitute: React.FC = () => {
         inst.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    const handleInstituteClick = (inst: any, e: React.MouseEvent) => {
+    /**
+     * Handles the selection of a specific institute.
+     * Persists the choice to localStorage and routes the user to Role Selection.
+     * 
+     * @param {any} inst - The institute object selected by the user
+     * @param {React.MouseEvent} e - The mouse event triggered by the click
+     */
+    const handleInstituteSelect = (inst: any, e: React.MouseEvent) => {
         e.stopPropagation();
         localStorage.setItem("selectedInstitute", JSON.stringify(inst));
         navigate("/role-selection", { state: { roles: inst.roles } });
@@ -117,7 +135,7 @@ const SelectInstitute: React.FC = () => {
                             key={i}
                             onMouseEnter={() => setHoverIndex(i)}
                             onMouseLeave={() => setHoverIndex(null)}
-                            onClick={(e) => handleInstituteClick(inst, e)}
+                            onClick={(e) => handleInstituteSelect(inst, e)}
                             style={{
                                 ...(styles.card as CSSProperties),
                                 ...(hoverIndex === i ? (styles.hoverCard as CSSProperties) : {})

@@ -27,6 +27,12 @@
   --login-card-border: none;
   --login-card-shadow: 0 0 50px rgba(0, 0, 0, 0.02);
   --profile-bg: #e5e7eb;
+
+  /* Dashboard Stat Cards - Light Theme */
+  --stat-bg-1: #eff6ff; --stat-text-1: #1e3a8a; --stat-desc-1: #3b82f6;
+  --stat-bg-2: #f0fdf4; --stat-text-2: #166534; --stat-desc-2: #22c55e;
+  --stat-bg-3: #fff7ed; --stat-text-3: #9a3412; --stat-desc-3: #f97316;
+  --stat-bg-4: #eef2ff; --stat-text-4: #3730a3; --stat-desc-4: #6366f1;
 }
 
 [data-theme='dark'] {
