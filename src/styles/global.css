@@ -137,3 +137,27 @@ input::placeholder {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Responsive Component Classes */
+.login-card {
+  background: var(--bg-card);
+  boxShadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.02);
+  border: var(--login-card-border);
+  padding: 48px 56px;
+  width: min(100%, 662px);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 24px;
+    width: 100%;
+  }
+}
+

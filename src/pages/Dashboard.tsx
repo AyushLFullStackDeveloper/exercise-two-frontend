@@ -1,59 +1,22 @@
 /**
  * @file Dashboard.tsx
  * @description The main landing interface after successful authentication and context selection.
- * Dynamically renders UI and analytics data based on the user's selected role.
  */
 
 import React, { CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import logoBlack from "../assets/images/logo_black.png";
 import logoWhite from "../assets/images/logo_white.png";
-import { API_URL } from "../utils/api";
+import apiClient from "../services/api";
+import Button from "../components/common/Button";
 
-const AvatarSVG = () => (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="18" cy="18" r="18" fill="#15803d"/>
-        <path d="M18 19C20.7614 19 23 16.7614 23 14C23 11.2386 20.7614 9 18 9C15.2386 9 13 11.2386 13 14C13 16.7614 15.2386 19 18 19Z" fill="#fcd34d"/>
-        <path d="M26 27C26 23.6863 22.4183 21 18 21C13.5817 21 10 23.6863 10 27" stroke="#fcd34d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M12 11C13 9 16 8 18 8C20 8 23 9 24 11C23 10 20 9.5 18 9.5C16 9.5 13 10 12 11Z" fill="#1f2937"/>
-    </svg>
-);
+const AvatarSVG = () => (<svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="18" fill="#15803d"/><path d="M18 19C20.7614 19 23 16.7614 23 14C23 11.2386 20.7614 9 18 9C15.2386 9 13 11.2386 13 14C13 16.7614 15.2386 19 18 19Z" fill="#fcd34d"/><path d="M26 27C26 23.6863 22.4183 21 18 21C13.5817 21 10 23.6863 10 27" stroke="#fcd34d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 11C13 9 16 8 18 8C20 8 23 9 24 11C23 10 20 9.5 18 9.5C16 9.5 13 10 12 11Z" fill="#1f2937"/></svg>);
+const LogoutIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>);
+const MenuIcon = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>);
 
-const LogoutIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-        <polyline points="16 17 21 12 16 7"></polyline>
-        <line x1="21" y1="12" x2="9" y2="12"></line>
-    </svg>
-);
+interface Stat { id: number; value: string; label: string; desc: string; bg: string; color: string; textBg: string; }
+interface RolePanel { title: string; stats: Stat[]; }
 
-const MenuIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-    </svg>
-);
-
-interface Stat {
-    id: number;
-    value: string;
-    label: string;
-    desc: string;
-    bg: string;
-    color: string;
-    textBg: string;
-}
-
-interface RolePanel {
-    title: string;
-    stats: Stat[];
-}
-
-/**
- * Configuration mapping for generating specific Dashboard Panels based on User Role.
- * Each role defines a title and a set of UI stat cards. Real-time values are injected from the backend.
- */
 const rolePanels: Record<string, RolePanel> = {
     Admin: {
         title: "Admin Panel",
@@ -117,10 +80,6 @@ rolePanels["Institute Admin"] = rolePanels.Admin;
 rolePanels.Trainer = rolePanels.Teacher;
 rolePanels.Staff = rolePanels.Admin;
 
-/**
- * Dashboard Component
- * Manages the fetching and merging of backend analytics into the role-specific UI configuration.
- */
 function Dashboard() {
     const navigate = useNavigate();
     const [stats, setStats] = React.useState<any>(null);
@@ -137,11 +96,6 @@ function Dashboard() {
     const storedRoleData = localStorage.getItem("selectedRole");
     const selectedRole = storedRoleData ? JSON.parse(storedRoleData) : null;
 
-    /**
-     * Component Mount Effect
-     * Enforces strict authorization policies: checks for token, institute, and role context.
-     * Initiates the fetch request for the contextual dashboard statistics.
-     */
     React.useEffect(() => {
         if (!token || !user) {
             navigate("/");
@@ -153,24 +107,15 @@ function Dashboard() {
             return;
         }
 
-        fetch(`${API_URL}/dashboard/stats?institute_id=${selectedInstitute.id}&role_id=${selectedRole.id}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        })
-        .then(async (res) => {
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to fetch stats");
-            return data;
-        })
-        .then((data) => {
-            setStats(data.data || data); // Handle both old and new format
-            setIsLoading(false);
-        })
-        .catch((err) => {
-            setError(err.message);
-            setIsLoading(false);
-        });
+        apiClient.get(`/dashboard/stats?institute_id=${selectedInstitute.id}&role_id=${selectedRole.id}`)
+            .then((res) => {
+                setStats(res.data.data || res.data);
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                setError(err.message);
+                setIsLoading(false);
+            });
     }, [token, user, selectedInstitute, selectedRole, navigate]);
 
     const logout = (): void => {
@@ -182,8 +127,8 @@ function Dashboard() {
         return (
             <div style={styles.container}>
                 <h2 style={{ textAlign: "center", paddingTop: "50px", color: "var(--text-primary)" }}>Please Login First</h2>
-                <div style={{ textAlign: "center" }}>
-                    <button style={styles.logoutBtn} onClick={() => navigate("/")}>Go to Login</button>
+                <div style={{ textAlign: "center", maxWidth: "200px", margin: "0 auto" }}>
+                    <Button onClick={() => navigate("/")}>Go to Login</Button>
                 </div>
             </div>
         );
@@ -192,12 +137,10 @@ function Dashboard() {
     const roleName = selectedRole?.name || "Admin";
     const basePanel = (rolePanels[roleName] || rolePanels.Admin);
     
-    // Merge backend stats into the UI panel
     const activePanel = {
         ...basePanel,
         stats: basePanel.stats.map((stat, idx) => {
             if (!stats) return stat;
-            // Map backend keys to the UI stat slots
             const backendKeys = Object.keys(stats);
             if (idx < backendKeys.length) {
                 return { ...stat, value: stats[backendKeys[idx]] };
@@ -208,7 +151,6 @@ function Dashboard() {
 
     return (
         <div style={styles.container}>
-            {/* HEADER */}
             <div style={styles.header}>
                 <div style={{display: "flex", alignItems: "center"}}>
                     <button className="mobile-menu-btn" style={styles.menuBtn}>
@@ -217,7 +159,7 @@ function Dashboard() {
                     <div style={styles.logoBox}>
                         <img src={logoBlack} alt="logo" className="logo-light" style={{ width: "24px" }} />
                         <img src={logoWhite} alt="logo" className="logo-dark" style={{ width: "24px" }} />
-                        <span className="hide-on-mobile" style={styles.logoText}>SchoolCoreOS</span>
+                        <span className="hide-on-mobile" style={styles.logoText}>MentrixOS</span>
                     </div>
                 </div>
                 <div style={styles.headerRight}>
@@ -236,11 +178,10 @@ function Dashboard() {
                 </div>
             </div>
 
-            {/* CONTENT */}
             <div style={styles.content}>
                 <h1 style={styles.title}>
                     Hey {user?.full_name || user?.name || "User"} 👋<br />
-                    Welcome to SchoolCoreOS {activePanel.title}!
+                    Welcome to MentrixOS {activePanel.title}!
                 </h1>
                 
                 <div style={styles.grid}>
@@ -260,78 +201,22 @@ function Dashboard() {
 }
 
 const styles: Record<string, CSSProperties> = {
-    container: {
-        minHeight: "100vh",
-        background: "var(--bg-color)",
-        fontFamily: "'Inter', Arial, sans-serif",
-    },
-    header: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "16px 24px",
-        background: "var(--header-bg)",
-        borderBottom: "1px solid var(--border-color)",
-    },
-    menuBtn: {
-        background: "transparent",
-        border: "none",
-        color: "var(--text-primary)",
-        cursor: "pointer",
-        padding: "4px",
-        marginRight: "8px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-    },
+    container: { minHeight: "100vh", background: "var(--bg-color)", fontFamily: "'Inter', Arial, sans-serif" },
+    header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", background: "var(--header-bg)", borderBottom: "1px solid var(--border-color)" },
+    menuBtn: { background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", padding: "4px", marginRight: "8px", display: "flex", alignItems: "center", justifyContent: "center" },
     logoBox: { display: "flex", alignItems: "center", gap: "8px", fontWeight: "700" },
     logoText: { fontSize: "16px", color: "var(--text-primary)" },
     headerRight: { display: "flex", alignItems: "center", gap: "20px" },
-    instituteLabel: { 
-        fontSize: "14px", color: "var(--text-secondary)", fontWeight: "500",
-        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "300px"
-    },
-    profile: {
-        width: "36px", height: "36px", borderRadius: "50%",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "pointer"
-    },
+    instituteLabel: { fontSize: "14px", color: "var(--text-secondary)", fontWeight: "500", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "300px" },
+    profile: { width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
     content: { maxWidth: "800px", margin: "60px auto 40px", padding: "0 20px" },
-    title: { 
-        fontSize: "32px", 
-        fontWeight: "700", 
-        marginBottom: "40px", 
-        color: "var(--text-primary)",
-        textAlign: "center" as const,
-        lineHeight: "1.4"
-    },
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: "24px"
-    },
-    card: {
-        padding: "24px", 
-        borderRadius: "12px",
-        display: "flex", 
-        flexDirection: "column" as const,
-        gap: "8px", 
-        textAlign: "left" as const,
-        boxShadow: "var(--shadow-sm)",
-    },
+    title: { fontSize: "32px", fontWeight: "700", marginBottom: "40px", color: "var(--text-primary)", textAlign: "center" as const, lineHeight: "1.4" },
+    grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px" },
+    card: { padding: "24px", borderRadius: "12px", display: "flex", flexDirection: "column" as const, gap: "8px", textAlign: "left" as const, boxShadow: "var(--shadow-sm)" },
     cardNumber: { margin: "0", fontSize: "24px", fontWeight: "700" },
     cardTitle: { margin: "0", fontSize: "15px", fontWeight: "600" },
     cardDesc: { margin: "0", fontSize: "13px", lineHeight: "1.5" },
-    logoutBtn: {
-        padding: "10px 20px", background: "var(--btn-bg)", color: "var(--btn-text)",
-        border: "none", borderRadius: "8px", fontSize: "16px", cursor: "pointer"
-    },
-    headerLogoutBtn: {
-        display: "flex", alignItems: "center", gap: "6px",
-        padding: "8px 14px", background: "transparent", color: "#ef4444",
-        border: "1px solid #ef4444", borderRadius: "8px", fontSize: "14px", fontWeight: "600",
-        cursor: "pointer", transition: "0.2s"
-    }
+    headerLogoutBtn: { display: "flex", alignItems: "center", gap: "6px", padding: "8px 14px", background: "transparent", color: "#ef4444", border: "1px solid #ef4444", borderRadius: "8px", fontSize: "14px", fontWeight: "600", cursor: "pointer", transition: "0.2s" }
 };
 
 export default Dashboard;
